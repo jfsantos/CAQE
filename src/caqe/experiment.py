@@ -385,6 +385,9 @@ def decrypt_audio_stimuli(condition_data):
         condition_data['ratings'] = dict([(decoding_map[k], v) for k, v in condition_data['ratings'].items()])
     elif app.config['TEST_TYPE'] == 'segmentation':
         condition_data['ratings'] = dict([(decoding_map[k], v) for k, v in condition_data['ratings'].items()])
+    elif app.config['TEST_TYPE'] == 'intelligibility':
+        condition_data['ratings'] = dict([(decoding_map[k], v) for k, v in condition_data['ratings'].items()])
+
     ###################################################################################################################
     # ADD NEW TEST TYPES HERE
     ###################################################################################################################

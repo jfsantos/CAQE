@@ -1199,3 +1199,164 @@ Segmentation.prototype.changeTimeStamp = function(ID){
     audio.currentTime = audio.duration*value;
     this.audioUpdate = setInterval(this.audioProgressUpdate, 250, audio);
 }
+
+/**
+ * Inherits from EvaluationTask and manages the intelligibility task
+ * @constructor
+ * @param {string} config - Contains the configuration data for the intelligibility task
+ */
+IntelligibilityTask.prototype = Object.create(EvaluationTask.prototype);
+IntelligibilityTask.prototype.constructor = PairwiseTask;
+
+function IntelligibilityTask(config) {
+    EvaluationTask.apply(this, arguments);
+    this.timeoutPassed = false;
+    this.createStimulusMap(this.conditionIndex);
+}
+
+IntelligibilityTask.prototype.startEvaluation = function () {
+    EvaluationTask.prototype.startEvaluation.apply(this);
+
+    this.audioGroup.setLoopAudio(true);
+};
+
+
+IntelligibilityTask.prototype.testTimeoutCallback = function (_this) {
+    _this.timeoutPassed = true;
+    _this.testNextTrialRequirements();
+};
+
+
+IntelligibilityTask.prototype.playReference = function(ID) {
+    this.audioGroup.solo(this.prependGroupID(ID));
+    if (this.audioGroup.audioPlayingID == -1) {
+        this.audioGroup.syncPlay();
+    }
+
+    $('.play-btn').removeClass('btn-success').addClass('btn-default');
+    $('#playReference' + ID + 'Btn').removeClass('btn-default').addClass('btn-success played');
+
+    this.testNextTrialRequirements();
+};
+
+
+IntelligibilityTask.prototype.playStimulus = function(ID) {
+    $('.play-btn').removeClass('btn-success').addClass('btn-default');
+
+    $('.intelligibilityStimulusLabel').html('&nbsp;');
+    $('.intelligibility-stimulus-play-btn').removeClass('intelligibility-selected');
+
+    this.audioGroup.solo(this.stimulusMap[ID]);
+    if (this.audioGroup.audioPlayingID == -1) {
+        this.audioGroup.syncPlay();
+    }
+
+    $('#playStimulus' + ID + 'BtnLabel').html('(selected)');
+    $('#playStimulus' + ID + 'Btn').removeClass('btn-default').addClass('btn-success played intelligibility-selected');
+
+    this.testNextTrialRequirements();
+};
+
+
+IntelligibilityTask.prototype.stopAllAudio = function() {
+    this.audioGroup.syncPause();
+    $('.play-btn').removeClass('btn-success').addClass('btn-default');
+};
+
+
+IntelligibilityTask.prototype.nextTrial = function () {
+    this.stopAllAudio();
+    if (!this.saveRatings()) {
+        return;
+    }
+
+    $('.intelligibility-stimulus-play-btn').removeClass('intelligibility-selected played');
+    $('.intelligibilityStimulusLabel').html('&nbsp;');
+
+    // disable next button
+    $('#evaluationNextBtn').addClass('disable-clicks').parent().addClass('disabled');
+
+    clearTimeout(this.testTimeout);
+
+    // reset playback position
+    $('#playback-position').val(0);
+
+    this.conditionIndex++;
+
+    if (this.conditionIndex >= this.config.conditions.length) {
+        this.submitResults();
+    } else {
+        this.createStimulusMap(this.conditionIndex);
+        this.setTrialCountLabels();
+        if (this.config.conditions[this.conditionIndex]['evaluation_instructions_html'] !== 'None') {
+            $('#evaluationInstructions').html(this.config.conditions[this.conditionIndex]['evaluation_instructions_html']);
+        }
+        this.timeoutPassed = false;
+        this.testTimeout = setTimeout(this.testTimeoutCallback, this.config['testTimeoutSec'] * 1000.0, this);
+    }
+};
+
+
+IntelligibilityTask.prototype.testNextTrialRequirements = function () {
+    var qry = $('#evaluation');
+    var all_played = qry.find('.play-btn').length == qry.find('.play-btn').filter('.played').length;
+    var stimulus_selected = $('.intelligibility-stimulus-play-btn').hasClass('intelligibility-selected');
+
+    if (all_played && stimulus_selected && this.timeoutPassed) {
+        $('#evaluationNextBtn').removeClass('disable-clicks').parent().removeClass('disabled');
+    }
+};
+
+
+IntelligibilityTask.prototype.createStimulusMap = function (conditionIndex) {
+    var i;
+    this.stimulusMap = []
+    for (i = 0; i < this.config.conditions[conditionIndex]['stimulusKeys'].length; i++) {
+        this.stimulusMap[i] = this.prependGroupID(this.config.conditions[conditionIndex]['stimulusKeys'][i],
+            conditionIndex);
+    }
+    var referenceKeys = [];
+    for (i = 0; i < this.config.conditions[conditionIndex]['referenceKeys'].length; i++) {
+        referenceKeys.push(this.prependGroupID(this.config.conditions[conditionIndex]['referenceKeys'][i],
+            conditionIndex));
+    }
+
+    this.audioGroup.setSyncIDs(this.stimulusMap.concat(referenceKeys));
+};
+
+
+// save the ratings for the current condition
+IntelligibilityTask.prototype.saveRatings = function() {
+    // make sure something was selected
+    if (!$('.intelligibility-stimulus-play-btn').hasClass('intelligibility-selected')) {
+        alert('Press the A or B button to select your preferred recording before continuing.');
+        return false;
+    }
+
+    var stimulusMap = [];
+
+    var i;
+    var re = /G([0-9]+)_([a-zA-Z0-9]+)/;
+    for (i = 0; i < this.stimulusMap.length; i++) {
+        stimulusMap[i] = re.exec(this.stimulusMap[i])[2];
+    }
+
+    // save the selected one
+    var conditionRatings = {};
+    conditionRatings[stimulusMap[0]] = $('#playStimulus0Btn').hasClass('intelligibility-selected') ? 1 : 0;
+    conditionRatings[stimulusMap[1]] = $('#playStimulus1Btn').hasClass('intelligibility-selected') ? 1 : 0;
+
+    // save the condition data
+    this.completedConditionData[this.conditionIndex] = {'ratings': conditionRatings,
+        'conditionID': this.config.conditions[this.conditionIndex].conditionID,
+        'groupID': this.config.conditions[this.conditionIndex].groupID,
+        'referenceFiles': this.config.conditionGroups[this.config.conditions[this.conditionIndex].groupID]['referenceFiles'],
+        'stimulusFiles': this.config.conditionGroups[this.config.conditions[this.conditionIndex].groupID]['stimulusFiles'],
+        'referenceKeys': this.config.conditions[this.conditionIndex].referenceKeys,
+        'stimulusKeys': this.config.conditions[this.conditionIndex].stimulusKeys};
+
+    return true;
+
+};
+
+
