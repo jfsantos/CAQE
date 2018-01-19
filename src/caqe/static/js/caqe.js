@@ -1206,7 +1206,7 @@ Segmentation.prototype.changeTimeStamp = function(ID){
  * @param {string} config - Contains the configuration data for the intelligibility task
  */
 IntelligibilityTask.prototype = Object.create(EvaluationTask.prototype);
-IntelligibilityTask.prototype.constructor = PairwiseTask;
+IntelligibilityTask.prototype.constructor = IntelligibilityTask;
 
 function IntelligibilityTask(config) {
     EvaluationTask.apply(this, arguments);

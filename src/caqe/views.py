@@ -729,6 +729,21 @@ def evaluation():
         ###############################################################################################################
         # ADD NEW TEST TYPES HERE
         ###############################################################################################################
+        elif app.config['TEST_TYPE'] == 'intelligibility':
+            print('Rendering intelligibility template')
+            return render_template('intelligibility.html',
+                                   test=test_config['test'],
+                                   condition_groups=test_config['condition_groups'],
+                                   conditions=test_config['conditions'],
+                                   participant_id=participant.id,
+                                   first_evaluation=participant.trials.count() == 0,
+                                   test_complete_redirect_url=url_for('post_evaluation_tasks',
+                                                                      _external=True,
+                                                                      _scheme=app.config['PREFERRED_URL_SCHEME']),
+                                   submission_url=url_for('evaluation',
+                                                          _external=True,
+                                                          _scheme=app.config['PREFERRED_URL_SCHEME']))
+
         elif app.config['TEST_TYPE'] == 'segmentation':
             return render_template('segmentation.html',
                                    test=test_config['test'],
@@ -856,6 +871,8 @@ def post_test_survey():
         ###############################################################################################################
         # ADD NEW TEST TYPES HERE
         ###############################################################################################################
+        elif app.config['TEST_TYPE'] == 'intelligibility':
+            return render_template('post_test_surveys/post_test_survey.html')
         elif app.config['TEST_TYPE'] == 'segmentation':
             return render_template('post_test_surveys/segmentation_post_survey.html')
 

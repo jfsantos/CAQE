@@ -63,11 +63,6 @@
 
         var config = {
             "testTimeoutSec": {{ config.TEST_TIMEOUT_SEC }},
-            "references": {
-                {% for reference in test.references %}
-                    "{{ reference[0] }}": "{{ reference[1] }}",
-                {% endfor %}
-            },
             "requireListeningToAllTrainingSounds": {{ ['false','true'][config.REQUIRE_LISTENING_TO_ALL_TRAINING_SOUNDS] }},
             "referenceExampleDict": {
                 {% for key, value in test.reference_example_dict.iteritems() %}
@@ -84,6 +79,7 @@
                             ],
                 {% endfor %}
             },
+
             "conditionGroups": {
                 {% for group_id, condition_group_data in condition_groups.iteritems()  %}
                     "{{ group_id }}": {

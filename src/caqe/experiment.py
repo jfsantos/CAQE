@@ -228,9 +228,12 @@ def get_test_configurations(condition_ids, participant_id):
             random.shuffle(condition_data['stimulus_keys'])
 
         if app.config['ENCRYPT_AUDIO_STIMULI_URLS']:
-            condition_group_data['reference_files'] = encrypt_audio_stimuli(condition_group_data['reference_files'],
-                                                                            participant_id,
-                                                                            condition.group_id)
+            try:
+                condition_group_data['reference_files'] = encrypt_audio_stimuli(condition_group_data['reference_files'],
+                                                                                participant_id,
+                                                                                condition.group_id)
+            except KeyError:
+                pass
             condition_group_data['stimulus_files'] = encrypt_audio_stimuli(condition_group_data['stimulus_files'],
                                                                            participant_id,
                                                                            condition.group_id)
