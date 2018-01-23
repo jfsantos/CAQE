@@ -9,6 +9,7 @@ function AudioGroup (ID) {
     this.audioPlayingID = -1;
     this.audioSoloingID = -1;
     this.syncIDs = [];
+    this.playOnce = false;
 
     $('body').append('<div id="' + this.ID + '"></div>');
 }
@@ -315,7 +316,9 @@ EvaluationTask.prototype.audioOnEnded = function () {
     if (this.audioGroup.loopAudio) {
         this.audioGroup.play(this.audioGroup.audioPlayingID);
     } else {
-        $('.play-btn').removeClass('disabled disable-clicks btn-success').addClass('btn-default');
+        if (!this.audioGroup.playOnce) {
+            $('.play-btn').removeClass('disabled disable-clicks btn-success').addClass('btn-default');
+        }
         this.audioGroup.audioPlayingID = -1;
     }
 
@@ -1212,12 +1215,13 @@ function IntelligibilityTask(config) {
     EvaluationTask.apply(this, arguments);
     this.timeoutPassed = false;
     this.createStimulusMap(this.conditionIndex);
+    this.audioGroup.playOnce = true;
 }
 
 IntelligibilityTask.prototype.startEvaluation = function () {
     EvaluationTask.prototype.startEvaluation.apply(this);
 
-    this.audioGroup.setLoopAudio(true);
+    //this.audioGroup.setLoopAudio(true);
 };
 
 
@@ -1241,16 +1245,13 @@ IntelligibilityTask.prototype.playReference = function(ID) {
 
 
 IntelligibilityTask.prototype.playStimulus = function(ID) {
-    $('.play-btn').removeClass('btn-success').addClass('btn-default');
+    $('.play-btn').removeClass('btn-success').addClass('btn-default played disabled disable-clicks');
 
     $('.intelligibilityStimulusLabel').html('&nbsp;');
     $('.intelligibility-stimulus-play-btn').removeClass('intelligibility-selected');
 
     this.audioGroup.solo(this.stimulusMap[ID]);
-    if (this.audioGroup.audioPlayingID == -1) {
-        this.audioGroup.syncPlay();
-    }
-
+    this.audioGroup.play(this.stimulusMap[ID]);
     $('#playStimulus' + ID + 'BtnLabel').html('(selected)');
     $('#playStimulus' + ID + 'Btn').removeClass('btn-default').addClass('btn-success played intelligibility-selected');
 
@@ -1300,9 +1301,8 @@ IntelligibilityTask.prototype.nextTrial = function () {
 IntelligibilityTask.prototype.testNextTrialRequirements = function () {
     var qry = $('#evaluation');
     var all_played = qry.find('.play-btn').length == qry.find('.play-btn').filter('.played').length;
-    var stimulus_selected = $('.intelligibility-stimulus-play-btn').hasClass('intelligibility-selected');
 
-    if (all_played && stimulus_selected && this.timeoutPassed) {
+    if (all_played && this.timeoutPassed) {
         $('#evaluationNextBtn').removeClass('disable-clicks').parent().removeClass('disabled');
     }
 };
@@ -1327,12 +1327,6 @@ IntelligibilityTask.prototype.createStimulusMap = function (conditionIndex) {
 
 // save the ratings for the current condition
 IntelligibilityTask.prototype.saveRatings = function() {
-    // make sure something was selected
-    if (!$('.intelligibility-stimulus-play-btn').hasClass('intelligibility-selected')) {
-        alert('Press the A or B button to select your preferred recording before continuing.');
-        return false;
-    }
-
     var stimulusMap = [];
 
     var i;
@@ -1341,10 +1335,10 @@ IntelligibilityTask.prototype.saveRatings = function() {
         stimulusMap[i] = re.exec(this.stimulusMap[i])[2];
     }
 
-    // save the selected one
+
+    // save the transcription
     var conditionRatings = {};
-    conditionRatings[stimulusMap[0]] = $('#playStimulus0Btn').hasClass('intelligibility-selected') ? 1 : 0;
-    conditionRatings[stimulusMap[1]] = $('#playStimulus1Btn').hasClass('intelligibility-selected') ? 1 : 0;
+    conditionRatings[stimulusMap[0]] = $('#transcription-text').val();
 
     // save the condition data
     this.completedConditionData[this.conditionIndex] = {'ratings': conditionRatings,

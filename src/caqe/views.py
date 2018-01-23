@@ -731,6 +731,7 @@ def evaluation():
         ###############################################################################################################
         elif app.config['TEST_TYPE'] == 'intelligibility':
             print('Rendering intelligibility template')
+            print(test_config)
             return render_template('intelligibility.html',
                                    test=test_config['test'],
                                    condition_groups=test_config['condition_groups'],

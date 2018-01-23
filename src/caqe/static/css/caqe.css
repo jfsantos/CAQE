@@ -196,3 +196,7 @@ input[type=range].segmentation-slider:focus::-ms-fill-lower {
 input[type=range].segmentation-slider:focus::-ms-fill-upper {
   background: #7f769a;
 }
+
+input[type=text]#intelligibility-text {
+  width: 100%;
+}

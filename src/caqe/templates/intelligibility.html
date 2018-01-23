@@ -16,22 +16,25 @@
         <hr>
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
-                <div class="well" id="pairwise-well">
+                <div class="well" id="intelligibility-well">
                     <div class="row text-center">
                         <h4>Trial <span id="currentTrialLbl">0</span> of <span id="totalTrialLbl">0</span></h4>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <button type="button"
-                                    class="btn btn-default play-btn pairwise-stimulus-play-btn btn-block"
+                                    class="btn btn-default play-btn"
                                     id="playStimulusBtn"
                                     onclick="evaluationTask.playStimulus(0);">
-                                ﻿<span style="font-size: 12pt;">play/select</span><br />A
+                                ﻿<span style="font-size: 12pt;">Play</span><br />
                             </button>
                         </div>
                     </div>
-                    <div>
-                        <!-- Insert text field here! -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <input type="text" name="transcription" placeholder="Enter the transcription here..."i
+                            class="transcription-text" id="transcription-text" style='width:100%'/>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-12">
@@ -45,7 +48,7 @@
             <div class="col-md-8 col-md-offset-2">
                 <ul class="pager">
                     <li class="next">
-                        <a href="#pairwise-well" id="evaluationNextBtn" onclick="evaluationTask.nextTrial();">Next trial &rarr;</a>
+                        <a href="#intelligibility-well" id="evaluationNextBtn" onclick="evaluationTask.nextTrial();">Next trial &rarr;</a>
                     </li>
                 </ul>
             </div>
